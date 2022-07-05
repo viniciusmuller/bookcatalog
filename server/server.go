@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/arcticlimer/bookcatalog/business"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
@@ -30,8 +31,16 @@ func (a *Server) Initialize(db *sqlx.DB) {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	// booksRepo := NewBooksRepository(a.DB)
-	// r.Mount("/books", Books{Repository: usersRepo}.Routes())
+	documentsRepo := business.NewDocumentsRepository(db)
+	r.Mount("/documents", DocumentsResource{Repository: documentsRepo}.Routes())
+
+  // TODO: Use user provided image and library paths
+	pdffs := http.FileServer(http.Dir("library"))
+	fmt.Println(http.Dir("library"))
+	r.Handle("/lib/*", http.StripPrefix("/lib/", pdffs))
+
+	coverfs := http.FileServer(http.Dir("img"))
+	r.Handle("/covers/*", http.StripPrefix("/covers/", coverfs))
 
 	a.Router = r
 }

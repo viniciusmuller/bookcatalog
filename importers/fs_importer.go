@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/arcticlimer/bookcatalog/business"
 	log "github.com/sirupsen/logrus"
@@ -61,45 +62,55 @@ func (i *FsImporter) ImportFiles(directory string) (ImportSummary, error) {
 	err = os.Mkdir(i.Config.LibraryPath, os.ModePerm)
 	err = os.Mkdir(i.Config.ImagesPath, os.ModePerm)
 
+	wg := new(sync.WaitGroup)
+	wg.Add(len(paths))
+
 	for _, path := range paths {
-		filename := filepath.Base(path)
-		ext := filepath.Ext(path)
-		log.Printf("Importing file %s\n", filename)
-		file, err := os.Open(path)
+		go func(path string, wg *sync.WaitGroup) {
+			defer wg.Done()
 
-		defer file.Close()
-		if err != nil {
-			log.Errorf("could not open file %s: %s\n", filename, err)
-		}
+			filename := filepath.Base(path)
+			ext := filepath.Ext(path)
+			log.Printf("Importing file %s\n", filename)
+			file, err := os.Open(path)
 
-		importResult := supportedTypes[ext]
-		err = i.ImportFile(filename, file)
-		if err != nil {
-			if errors.Is(err, ErrWarning) {
-				log.Warnln(err)
-				importResult.Warnings++
-			} else {
-				log.Errorf("could not import file %s: %s\n", filename, err)
-				importResult.Failures++
-				continue
+			defer file.Close()
+			if err != nil {
+				log.Errorf("could not open file %s: %s\n", filename, err)
 			}
-		}
 
-		_, err = i.DocumentsRepository.CreateDocument(filename)
-		if err != nil {
-			// TODO: what to do with the file that was already imported in that case?
-			// TODO: Maybe create the document in the database first
-			log.Errorf("could not persist file to the database %s: %s\n", filename, err)
-		}
+			importResult := supportedTypes[ext]
+			_, err = i.DocumentsRepository.CreateDocument(filename)
+			if err != nil {
+				log.Errorf("could not persist file to the database %s: %s\n", filename, err)
+				importResult.Failures++
+				return
+			}
 
-		importResult.Successes++
+			err = i.ImportFile(filename, file)
+			if err != nil {
+				if errors.Is(err, ErrWarning) {
+					log.Warnln(err)
+					importResult.Warnings++
+				} else {
+					log.Errorf("could not import file %s: %s\n", filename, err)
+					importResult.Failures++
+					return
+				}
+			}
+
+			importResult.Successes++
+		}(path, wg)
 	}
+
+	wg.Wait()
 
 	return supportedTypes, nil
 }
 
 func (i *FsImporter) ImportFile(filename string, file *os.File) error {
 	_, err := os.Stat(filepath.Join(i.Config.LibraryPath, filename))
+  // TODO: Check in database if file was already imported instead of locally
 	if err == nil {
 		return fmt.Errorf("file already imported: %s", filename)
 	}
@@ -139,7 +150,7 @@ func importPdfImage(path, imagesPath string) error {
 	}
 
 	pdfFirstPage := fmt.Sprintf("%s[0]", path)
-	pageDestionation := filepath.Join(imagesPath, fmt.Sprintf("%s.jpg", fileNameWithoutExtTrimSuffix(fileName)))
+	pageDestionation := filepath.Join(imagesPath, fmt.Sprintf("%s.jpg", removeExt(fileName)))
 	err = exec.Command("convert", pdfFirstPage, pageDestionation).Run()
 	if err != nil {
 		return fmt.Errorf("command 'convert' errored out: %w", err)
@@ -148,7 +159,7 @@ func importPdfImage(path, imagesPath string) error {
 	return nil
 }
 
-func fileNameWithoutExtTrimSuffix(fileName string) string {
+func removeExt(fileName string) string {
 	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
 }
 

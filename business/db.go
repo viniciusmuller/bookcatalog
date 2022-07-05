@@ -31,6 +31,7 @@ func GetDb(dbpath string) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to the database: %w", err)
 	}
+	db.SetMaxOpenConns(1)
 
 	return db, nil
 }

@@ -27,6 +27,10 @@
           gopkgs
           gotests
           impl
+
+          # node
+          yarn
+          nodejs
         ];
       in
       rec {
