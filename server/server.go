@@ -54,6 +54,10 @@ func (a *Server) Initialize(db *sqlx.DB) {
 
 	coverfs := http.FileServer(http.Dir("img"))
 	r.Handle("/covers/*", http.StripPrefix("/covers/", coverfs))
+
+	distfs := http.FileServer(http.Dir("dist"))
+	r.Handle("/*", http.StripPrefix("/", distfs))
+
 	a.Router = r
 }
 
