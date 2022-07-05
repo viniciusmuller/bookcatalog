@@ -1,7 +1,9 @@
 package server
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"time"
 
@@ -12,6 +14,10 @@ import (
 	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 )
+
+//go:embed dist/assets/*
+//go:embed dist/index.html
+var dist embed.FS
 
 type Server struct {
 	Router *chi.Mux
@@ -32,7 +38,7 @@ func (a *Server) Initialize(db *sqlx.DB) {
 	r.Use(middleware.Recoverer)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080"},
+    AllowOriginFunc:  func(origin string) bool { return true },
 		AllowCredentials: true,
 		// Enable Debugging for testing, consider disabling in production
 		Debug: true,
@@ -55,7 +61,8 @@ func (a *Server) Initialize(db *sqlx.DB) {
 	coverfs := http.FileServer(http.Dir("img"))
 	r.Handle("/covers/*", http.StripPrefix("/covers/", coverfs))
 
-	distfs := http.FileServer(http.Dir("dist"))
+  subFS, _ := fs.Sub(dist, "dist")
+	distfs := http.FileServer(http.FS(subFS))
 	r.Handle("/*", http.StripPrefix("/", distfs))
 
 	a.Router = r
