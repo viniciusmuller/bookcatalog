@@ -1,0 +1,45 @@
+html,
+body {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background: #fafafa;
+  font-family: 'Helvetica Neue', arial, sans-serif;
+  font-weight: 400;
+  color: #444;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#catalog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#documents-container {
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 3rem;
+}
+
+#documents-container > * {
+  margin: 1rem;
+}
+
+#app {
+  height: 100%;
+  font-size: 1.5em;
+}
+
+.link {
+  color: #fff;
+}

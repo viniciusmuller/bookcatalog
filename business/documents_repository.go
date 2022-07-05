@@ -14,12 +14,12 @@ import (
 var ErrDocumentNotFound = errors.New("document not found")
 
 type Document struct {
-	Id         string    `db:"id"`
-	Name       string    `db:"name"`
-	CoverUrl   string    `db:"cover_url"`
-	LibraryUrl string    `db:"library_url"`
-	UpdatedAt  time.Time `db:"updated_at"`
-	InsertedAt time.Time `db:"inserted_at"`
+  Id         string    `db:"id" json:"id"`
+	Name       string    `db:"name" json:"name"`
+	CoverUrl   string    `db:"cover_url" json:"coverUrl"`
+	LibraryUrl string    `db:"library_url" json:"libraryUrl"`
+	UpdatedAt  time.Time `db:"updated_at" json:"updatedAt"`
+	InsertedAt time.Time `db:"inserted_at" json:"insertedAt"`
 }
 
 type DocumentsRepository struct {

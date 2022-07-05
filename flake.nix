@@ -31,6 +31,7 @@
           # node
           yarn
           nodejs
+          nodePackages.typescript-language-server
         ];
       in
       rec {

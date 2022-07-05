@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,17 +31,29 @@ func (a *Server) Initialize(db *sqlx.DB) {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	documentsRepo := business.NewDocumentsRepository(db)
-	r.Mount("/documents", DocumentsResource{Repository: documentsRepo}.Routes())
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080"},
+		AllowCredentials: true,
+		// Enable Debugging for testing, consider disabling in production
+		Debug: true,
+	})
 
-  // TODO: Use user provided image and library paths
+	var corsMiddleware = func(handler http.Handler) http.Handler {
+		// Insert the middleware
+		return c.Handler(handler)
+	}
+
+	r.Use(corsMiddleware)
+
+	documentsRepo := business.NewDocumentsRepository(db)
+	r.Mount("/api/documents", DocumentsResource{Repository: documentsRepo}.Routes())
+
+	// TODO: Use user provided image and library paths
 	pdffs := http.FileServer(http.Dir("library"))
-	fmt.Println(http.Dir("library"))
-	r.Handle("/lib/*", http.StripPrefix("/lib/", pdffs))
+	r.Handle("/library/*", http.StripPrefix("/library/", pdffs))
 
 	coverfs := http.FileServer(http.Dir("img"))
 	r.Handle("/covers/*", http.StripPrefix("/covers/", coverfs))
-
 	a.Router = r
 }
 
