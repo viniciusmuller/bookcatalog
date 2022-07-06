@@ -29,7 +29,6 @@
           impl
 
           # node
-          yarn
           nodejs
           nodePackages.typescript-language-server
         ];

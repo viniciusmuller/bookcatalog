@@ -18,12 +18,13 @@ COPY go.mod .
 COPY . .
 COPY --from=frontendbuild /app/dist /app/server
 RUN apk add --update build-base
-# RUN CGO_ENABLED=1 go build -o bookcatalog . # -ldflags='-extldflags=-static'
 RUN CGO_ENABLED=1 go build -a -ldflags '-linkmode external -extldflags "-static"' .
 
 FROM scratch
 COPY --from=gobuild /app/bookcatalog /app/bookcatalog
+COPY --from=gobuild /app/db/migrations /app/db
 
-WORKDIR /mount
-CMD ["/app/bookcatalog", "start" ]
+# TODO: dont use hardcoded migrations path
+# TODO: Maybe just use the entrypoint command and parameterize user input
+CMD ["/app/bookcatalog", "start", "-d", "/app/db/migrations", "-l", "/mount/library", "-i", "/mount/images" ]
 

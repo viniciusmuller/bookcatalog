@@ -25,6 +25,6 @@ var startCommand = &cobra.Command{
 			return fmt.Errorf("error initializing database: %w", err)
 		}
 
-		return server.Start(db, address)
+		return server.Start(db, address, libraryPath, imagesPath)
 	},
 }

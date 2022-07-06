@@ -29,7 +29,7 @@ const (
 	port = 8080
 )
 
-func (a *Server) Initialize(db *sqlx.DB) {
+func (a *Server) Initialize(db *sqlx.DB, libraryPath, coversPath string) {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -38,7 +38,7 @@ func (a *Server) Initialize(db *sqlx.DB) {
 	r.Use(middleware.Recoverer)
 
 	c := cors.New(cors.Options{
-    AllowOriginFunc:  func(origin string) bool { return true },
+		AllowOriginFunc:  func(origin string) bool { return true },
 		AllowCredentials: true,
 		// Enable Debugging for testing, consider disabling in production
 		Debug: true,
@@ -55,13 +55,13 @@ func (a *Server) Initialize(db *sqlx.DB) {
 	r.Mount("/api/documents", DocumentsResource{Repository: documentsRepo}.Routes())
 
 	// TODO: Use user provided image and library paths
-	pdffs := http.FileServer(http.Dir("library"))
+	pdffs := http.FileServer(http.Dir(libraryPath))
 	r.Handle("/library/*", http.StripPrefix("/library/", pdffs))
 
-	coverfs := http.FileServer(http.Dir("img"))
+	coverfs := http.FileServer(http.Dir(coversPath))
 	r.Handle("/covers/*", http.StripPrefix("/covers/", coverfs))
 
-  subFS, _ := fs.Sub(dist, "dist")
+	subFS, _ := fs.Sub(dist, "dist")
 	distfs := http.FileServer(http.FS(subFS))
 	r.Handle("/*", http.StripPrefix("/", distfs))
 
@@ -79,9 +79,9 @@ func (a *Server) Run(addr string) error {
 	return srv.ListenAndServe()
 }
 
-func Start(db *sqlx.DB, addr string) error {
+func Start(db *sqlx.DB, addr, libraryPath, coversPath string) error {
 	log.Println(fmt.Sprintf("starting server at %s", addr))
 	a := Server{}
-	a.Initialize(db)
+	a.Initialize(db, libraryPath, coversPath)
 	return a.Run(addr)
 }
