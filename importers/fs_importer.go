@@ -108,9 +108,9 @@ func (i *FsImporter) ImportFiles(directory string) (ImportSummary, error) {
 	return supportedTypes, nil
 }
 
-func (i *FsImporter) ImportFile(filename string, file *os.File) error {
+func (i *FsImporter) ImportFile(filename string, file io.Reader) error {
 	_, err := os.Stat(filepath.Join(i.Config.LibraryPath, filename))
-  // TODO: Check in database if file was already imported instead of locally
+	// TODO: Check in database if file was already imported instead of locally
 	if err == nil {
 		return fmt.Errorf("file already imported: %s", filename)
 	}

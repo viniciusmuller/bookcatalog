@@ -14,7 +14,7 @@ import (
 var ErrDocumentNotFound = errors.New("document not found")
 
 type Document struct {
-  Id         string    `db:"id" json:"id"`
+	Id         string    `db:"id" json:"id"`
 	Name       string    `db:"name" json:"name"`
 	CoverUrl   string    `db:"cover_url" json:"coverUrl"`
 	LibraryUrl string    `db:"library_url" json:"libraryUrl"`
@@ -58,7 +58,7 @@ func (d *DocumentsRepository) CreateDocument(name string) (Document, error) {
 func (d *DocumentsRepository) ReadDocument(id string) (Document, error) {
 	doc := Document{}
 	err := d.DB.Get(&doc,
-		`select id,name,inserted_at,updated_at from Documents where id=$1`, id)
+		`select id,name,library_url,cover_url,inserted_at,updated_at from Documents where id=$1`, id)
 	if err != nil {
 		return Document{}, fmt.Errorf("couldn't get document: %w", err)
 	}

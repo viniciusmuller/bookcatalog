@@ -2,10 +2,10 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/arcticlimer/bookcatalog/business"
+	"github.com/arcticlimer/bookcatalog/importers"
 	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	renderPkg "github.com/unrolled/render"
@@ -19,6 +19,7 @@ type CreateDocument struct {
 
 type DocumentsResource struct {
 	Repository business.DocumentsRepository // TODO: Use repositorier interface here
+	Importer   importers.FsImporter
 }
 
 func (rs DocumentsResource) Routes() chi.Router {
@@ -48,9 +49,22 @@ func (rs DocumentsResource) List(w http.ResponseWriter, r *http.Request) {
 
 func (rs DocumentsResource) Create(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(0)
-	fmt.Println(r.FormValue("file"))
+	file, header, err := r.FormFile("document")
+	if err != nil {
+    // TODO: Return these as JSON errors to the client
+		log.Println(err)
+		return
+	}
+	defer file.Close()
 
-	doc, err := rs.Repository.CreateDocument("foobar")
+  err = rs.Importer.ImportFile(header.Filename, file)
+	if err != nil {
+		log.Println(err)
+		// writeStatus(w, http.StatusInternalServerError)
+		return
+	}
+
+	doc, err := rs.Repository.CreateDocument(header.Filename)
 	if err != nil {
 		log.Println(err)
 		// writeStatus(w, http.StatusInternalServerError)

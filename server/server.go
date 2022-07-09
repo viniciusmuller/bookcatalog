@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/arcticlimer/bookcatalog/business"
+	"github.com/arcticlimer/bookcatalog/importers"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
@@ -40,6 +41,7 @@ func (a *Server) Initialize(db *sqlx.DB, libraryPath, coversPath string) {
 	c := cors.New(cors.Options{
 		AllowOriginFunc:  func(origin string) bool { return true },
 		AllowCredentials: true,
+		AllowedMethods:   []string{"HEAD", "GET", "POST", "DELETE"},
 		// Enable Debugging for testing, consider disabling in production
 		Debug: true,
 	})
@@ -51,8 +53,13 @@ func (a *Server) Initialize(db *sqlx.DB, libraryPath, coversPath string) {
 
 	r.Use(corsMiddleware)
 
+	impcfg := importers.FsImporterConfig{
+		LibraryPath: libraryPath,
+		ImagesPath:  coversPath,
+	}
 	documentsRepo := business.NewDocumentsRepository(db)
-	r.Mount("/api/documents", DocumentsResource{Repository: documentsRepo}.Routes())
+	importer := importers.NewFsImporter(impcfg, documentsRepo)
+	r.Mount("/api/documents", DocumentsResource{Repository: documentsRepo, Importer: importer}.Routes())
 
 	// TODO: Use user provided image and library paths
 	pdffs := http.FileServer(http.Dir(libraryPath))
