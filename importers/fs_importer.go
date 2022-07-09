@@ -60,7 +60,14 @@ func (i *FsImporter) ImportFiles(directory string) (ImportSummary, error) {
 
 	// TODO: move code
 	err = os.Mkdir(i.Config.LibraryPath, os.ModePerm)
+  if err != nil {
+    return ImportSummary{}, fmt.Errorf("couldn't create library directory: %w", err)
+  }
+
 	err = os.Mkdir(i.Config.ImagesPath, os.ModePerm)
+  if err != nil {
+    return ImportSummary{}, fmt.Errorf("couldn't create images directory: %w", err)
+  }
 
 	wg := new(sync.WaitGroup)
 	wg.Add(len(paths))
@@ -73,11 +80,10 @@ func (i *FsImporter) ImportFiles(directory string) (ImportSummary, error) {
 			ext := filepath.Ext(path)
 			log.Printf("Importing file %s\n", filename)
 			file, err := os.Open(path)
-
-			defer file.Close()
 			if err != nil {
 				log.Errorf("could not open file %s: %s\n", filename, err)
 			}
+			defer file.Close()
 
 			importResult := supportedTypes[ext]
 			_, err = i.DocumentsRepository.CreateDocument(filename)
@@ -117,10 +123,10 @@ func (i *FsImporter) ImportFile(filename string, file io.Reader) error {
 
 	importedFilePath := filepath.Join(i.Config.LibraryPath, filename)
 	destFile, err := os.Create(importedFilePath)
-	defer destFile.Close()
 	if err != nil {
 		return fmt.Errorf("failed to create destination file: %w", err)
 	}
+	defer destFile.Close()
 
 	_, err = io.Copy(destFile, file)
 	if err != nil {

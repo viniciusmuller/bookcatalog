@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/arcticlimer/bookcatalog/business"
@@ -12,10 +13,6 @@ import (
 )
 
 var render = renderPkg.New()
-
-type CreateDocument struct {
-	name string
-}
 
 type DocumentsResource struct {
 	Repository business.DocumentsRepository // TODO: Use repositorier interface here
@@ -44,20 +41,29 @@ func (rs DocumentsResource) List(w http.ResponseWriter, r *http.Request) {
 		// writeStatus(w, http.StatusInternalServerError)
 		return
 	}
-	render.JSON(w, http.StatusOK, docs)
+
+	err = render.JSON(w, http.StatusOK, docs)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (rs DocumentsResource) Create(w http.ResponseWriter, r *http.Request) {
-	r.ParseMultipartForm(0)
+	err := r.ParseMultipartForm(0)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	file, header, err := r.FormFile("document")
 	if err != nil {
-    // TODO: Return these as JSON errors to the client
+		// TODO: Return these as JSON errors to the client
 		log.Println(err)
 		return
 	}
 	defer file.Close()
 
-  err = rs.Importer.ImportFile(header.Filename, file)
+	err = rs.Importer.ImportFile(header.Filename, file)
 	if err != nil {
 		log.Println(err)
 		// writeStatus(w, http.StatusInternalServerError)
@@ -71,7 +77,10 @@ func (rs DocumentsResource) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.JSON(w, http.StatusCreated, doc)
+	err = render.JSON(w, http.StatusCreated, doc)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (rs DocumentsResource) Get(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +97,10 @@ func (rs DocumentsResource) Get(w http.ResponseWriter, r *http.Request) {
 		// writeStatus(w, http.StatusInternalServerError)
 		return
 	}
-	render.JSON(w, http.StatusOK, doc)
+	err = render.JSON(w, http.StatusOK, doc)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (rs DocumentsResource) Delete(w http.ResponseWriter, r *http.Request) {

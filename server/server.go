@@ -26,10 +26,6 @@ type Server struct {
 	err    error
 }
 
-const (
-	port = 8080
-)
-
 func (a *Server) Initialize(db *sqlx.DB, libraryPath, coversPath string) {
 	r := chi.NewRouter()
 
@@ -68,7 +64,11 @@ func (a *Server) Initialize(db *sqlx.DB, libraryPath, coversPath string) {
 	coverfs := http.FileServer(http.Dir(coversPath))
 	r.Handle("/covers/*", http.StripPrefix("/covers/", coverfs))
 
-	subFS, _ := fs.Sub(dist, "dist")
+	subFS, err := fs.Sub(dist, "dist")
+	if err != nil {
+		a.err = fmt.Errorf("Couldn't mount dist fs: %w", err)
+	}
+
 	distfs := http.FileServer(http.FS(subFS))
 	r.Handle("/*", http.StripPrefix("/", distfs))
 
