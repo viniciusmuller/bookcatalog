@@ -36,6 +36,8 @@ func (rs DocumentsResource) Routes() chi.Router {
 }
 
 func (rs DocumentsResource) List(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+
 	pageSize, err := strconv.Atoi(r.URL.Query().Get("pageSize"))
 	if err != nil {
 		pageSize = 10
@@ -46,7 +48,7 @@ func (rs DocumentsResource) List(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	docs, err := rs.Repository.ListDocuments(page, pageSize)
+	docs, err := rs.Repository.ListDocuments(query, page, pageSize)
 	if err != nil {
 		log.Println(err)
 		// writeStatus(w, http.StatusInternalServerError)

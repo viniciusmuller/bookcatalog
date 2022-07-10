@@ -5,17 +5,23 @@ import coverNotFoundImage from '../assets/img/cover-not-found.jpg'
 
 export const Main = (_: any) => {
   let [documents, setDocuments] = useState<AppDocument[] | null>(null)
+  let [query, _setQuery] = useState<string>("")
   let [page, setPage] = useState<number>(1)
   const bookCatalogClient = new BookCatalogClient()
   const pageSize = 15
 
   useEffect(() => {
-    bookCatalogClient?.getDocuments(page, pageSize)
+    bookCatalogClient?.getDocuments(query, page, pageSize)
       .then(documentsResponse => {
         setDocuments(documentsResponse)
       })
       .catch(err => console.error("could not load documents", err))
-  }, [page])
+  }, [page, query])
+
+  const setQuery = (query: string) => {
+    setPage(1)
+    _setQuery(query)
+  }
 
   return (
     <>
@@ -23,15 +29,15 @@ export const Main = (_: any) => {
         <h1>Book Catalog</h1>
 
         <div style="display: flex">
-          <input size={35} type="text" placeholder="Search for books" />
+          <input onChange={event => setQuery(event.currentTarget.value)} size={35} type="text" placeholder="Search for books" />
           <button type="button">Search</button>
         </div>
         <a style="margin-top: 10px" href="add-documents"><button type="button">Add documents</button></a>
 
         <div>
           <p style="display: inline-block; margin-right: 10px">Page {page}</p>
-          <button onClick={() => setPage(page + 1)}>Next page</button>
           <button onClick={() => page > 1 && setPage(page - 1)}>Previous page</button>
+          <button onClick={() => setPage(page + 1)}>Next page</button>
         </div>
       </div>
 

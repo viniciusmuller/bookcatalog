@@ -20,6 +20,10 @@ export const DocumentPage = (props: any) => {
   }, [])
 
   const deleteDocument = async () => {
+    if (!confirm(`Are you sure you want to delete "${document!.title || document!.filename}"?`)) {
+      return
+    }
+
     const success = await bookCatalogClient.removeDocument(document!.id)
     if (success) {
       alert("The document was succesfully deleted.")
@@ -27,7 +31,7 @@ export const DocumentPage = (props: any) => {
   }
 
   return (
-    <div>
+    <div style="margin: 2rem">
       {document ?
         <div style="display: flex">
           <img height={700} src={bookCatalogClient.getCoverUrl(document)} />
@@ -36,7 +40,7 @@ export const DocumentPage = (props: any) => {
             <h3>Author: {document.author || "Unknown"}</h3>
             <p>Pages: {document.pages || "Unknown"}</p>
             <a href={bookCatalogClient.getDocumentUrl(document)}>Read</a>
-            <div>
+            <div style="margin-top: 10px">
               <button
                 type='button'
                 onClick={deleteDocument}
@@ -47,7 +51,7 @@ export const DocumentPage = (props: any) => {
             </div>
           </div>
         </div>
-        : <p>Loading</p>}
+        : <p>Loading...</p>}
     </div>
   )
 }

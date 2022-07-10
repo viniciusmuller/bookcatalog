@@ -41,7 +41,7 @@ type DocumentsRepositorier interface {
 	// UpdateDocument(id string) (Document, error)
 	ReadDocument(id string) (Document, error)
 	DeleteDocument(id string) error
-	ListDocuments(page, pageSize int) ([]Document, error)
+	ListDocuments(queyr string, page, pageSize int) ([]Document, error)
 }
 
 func (d *DocumentsRepository) CreateDocument(data CreateDocumentRequest) (Document, error) {
@@ -96,17 +96,19 @@ func (d *DocumentsRepository) DeleteDocument(id string) error {
 	return nil
 }
 
-func (d *DocumentsRepository) ListDocuments(page, pageSize int) ([]Document, error) {
+func (d *DocumentsRepository) ListDocuments(query string, page, pageSize int) ([]Document, error) {
 	docs := []Document{}
 	err := d.DB.Select(&docs, `
     select
       id,filename,author,title,pages,
       library_url,cover_url,inserted_at,updated_at
     from Documents
+    where title    like '%' || $1 || '%' 
+       or filename like '%' || $1 || '%'
     order by updated_at
-    limit $1
-    offset $2
-    `, pageSize, page*pageSize)
+    limit $2
+    offset $3
+    `, query, pageSize, page*pageSize)
 	if err != nil {
 		return []Document{}, fmt.Errorf("couldn't select documents: %w", err)
 	}
