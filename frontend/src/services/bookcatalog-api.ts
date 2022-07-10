@@ -7,8 +7,8 @@ export class BookCatalogClient {
     this.serverUrl = this.getHost()
   }
 
-  async getDocuments(): Promise<AppDocument[]> {
-    const response = await fetch(`${this.serverUrl}/api/documents`)
+  async getDocuments(page: number, pageSize: number): Promise<AppDocument[]> {
+    const response = await fetch(`${this.serverUrl}/api/documents?page=${page}&pageSize=${pageSize}`)
     return <AppDocument[]>await response.json()
   }
 

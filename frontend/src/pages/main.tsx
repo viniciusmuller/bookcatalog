@@ -5,15 +5,17 @@ import coverNotFoundImage from '../assets/img/cover-not-found.jpg'
 
 export const Main = (_: any) => {
   let [documents, setDocuments] = useState<AppDocument[] | null>(null)
+  let [page, setPage] = useState<number>(1)
   const bookCatalogClient = new BookCatalogClient()
+  const pageSize = 15
 
   useEffect(() => {
-    bookCatalogClient?.getDocuments()
+    bookCatalogClient?.getDocuments(page, pageSize)
       .then(documentsResponse => {
         setDocuments(documentsResponse)
       })
       .catch(err => console.error("could not load documents", err))
-  }, [])
+  }, [page])
 
   return (
     <>
@@ -24,12 +26,19 @@ export const Main = (_: any) => {
           <input size={35} type="text" placeholder="Search for books" />
           <button type="button">Search</button>
         </div>
-        <a href="add-documents"><button type="button">Add documents</button></a>
+        <a style="margin-top: 10px" href="add-documents"><button type="button">Add documents</button></a>
+
+        <div>
+          <p style="display: inline-block; margin-right: 10px">Page {page}</p>
+          <button onClick={() => setPage(page + 1)}>Next page</button>
+          <button onClick={() => page > 1 && setPage(page - 1)}>Previous page</button>
+        </div>
       </div>
 
       <div id="catalog">
         <div id="documents-container">
-          {documents ?
+          {documents == null && <p>Loading documents...</p>}
+          {documents != null && documents.length > 0 &&
             documents.map(d =>
               <a key={d.id} href={`/documents/${d.id}`}>
                 <object
@@ -40,7 +49,10 @@ export const Main = (_: any) => {
                   <img height="300" src={coverNotFoundImage} alt="Cover not found" />
                 </object>
               </a>
-            ) : <p>Loading documents...</p>
+            )
+          }
+          {documents != null && documents.length == 0 &&
+            <p>No documents to show.</p>
           }
         </div>
       </div>

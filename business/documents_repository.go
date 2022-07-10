@@ -41,7 +41,7 @@ type DocumentsRepositorier interface {
 	// UpdateDocument(id string) (Document, error)
 	ReadDocument(id string) (Document, error)
 	DeleteDocument(id string) error
-	ListDocuments() ([]Document, error)
+	ListDocuments(page, pageSize int) ([]Document, error)
 }
 
 func (d *DocumentsRepository) CreateDocument(data CreateDocumentRequest) (Document, error) {
@@ -69,12 +69,11 @@ func (d *DocumentsRepository) CreateDocument(data CreateDocumentRequest) (Docume
 	return doc, nil
 }
 
-// TODO: handle not found cases
 func (d *DocumentsRepository) ReadDocument(id string) (Document, error) {
 	doc := Document{}
 	err := d.DB.Get(&doc,
-		`select 
-      id,filename,author,title,pages,library_url,cover_url,inserted_at,updated_at 
+		`select
+      id,filename,author,title,pages,library_url,cover_url,inserted_at,updated_at
     from Documents where id=$1`, id)
 	if err != nil {
 		return Document{}, fmt.Errorf("couldn't get document: %w", err)
@@ -97,9 +96,17 @@ func (d *DocumentsRepository) DeleteDocument(id string) error {
 	return nil
 }
 
-func (d *DocumentsRepository) ListDocuments() ([]Document, error) {
+func (d *DocumentsRepository) ListDocuments(page, pageSize int) ([]Document, error) {
 	docs := []Document{}
-	err := d.DB.Select(&docs, "select id,filename,author,title,pages,library_url,cover_url,inserted_at,updated_at from Documents")
+	err := d.DB.Select(&docs, `
+    select
+      id,filename,author,title,pages,
+      library_url,cover_url,inserted_at,updated_at
+    from Documents
+    order by updated_at
+    limit $1
+    offset $2
+    `, pageSize, page*pageSize)
 	if err != nil {
 		return []Document{}, fmt.Errorf("couldn't select documents: %w", err)
 	}

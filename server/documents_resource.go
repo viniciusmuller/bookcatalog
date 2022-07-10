@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/arcticlimer/bookcatalog/business"
 	"github.com/arcticlimer/bookcatalog/importers"
@@ -35,7 +36,17 @@ func (rs DocumentsResource) Routes() chi.Router {
 }
 
 func (rs DocumentsResource) List(w http.ResponseWriter, r *http.Request) {
-	docs, err := rs.Repository.ListDocuments()
+	pageSize, err := strconv.Atoi(r.URL.Query().Get("pageSize"))
+	if err != nil {
+		pageSize = 10
+	}
+
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		page = 1
+	}
+
+	docs, err := rs.Repository.ListDocuments(page, pageSize)
 	if err != nil {
 		log.Println(err)
 		// writeStatus(w, http.StatusInternalServerError)
