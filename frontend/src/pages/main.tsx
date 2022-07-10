@@ -17,10 +17,13 @@ export const Main = (_: any) => {
 
   return (
     <>
-      <h1>Book Catalog</h1>
+      <div style="display: flex; flex-direction: column; align-items: center">
+        <h1>Book Catalog</h1>
 
-      <div style="display: flex;">
-        <input type="text" placeholder="Search for books" />
+        <div style="display: flex">
+          <input size={35} type="text" placeholder="Search for books" />
+          <button type="button">Search</button>
+        </div>
         <a href="add-documents"><button type="button">Add documents</button></a>
       </div>
 
@@ -32,7 +35,7 @@ export const Main = (_: any) => {
                 <object
                   height="300"
                   data={bookCatalogClient.getCoverUrl(d)}
-                  title={d.name} type="image/jpg"
+                  title={d.title || d.filename} type="image/png"
                 >
                   <img height="300" src={coverNotFoundImage} alt="Cover not found" />
                 </object>

@@ -24,15 +24,13 @@ export const AddDocuments = (_props: AddDocumentsProps) => {
   }
 
   return (
-    <div>
-      <div>
-        <label htmlFor="documents-input">Add documents</label>
-        <br />
-        <input type="file"
-          onInput={e => setFiles([...e.currentTarget.files!])} multiple />
-        <br />
-        <button type="button" onClick={submitFiles} multiple>Submit</button>
-      </div>
+    <div style="margin: 2rem">
+      <label htmlFor="documents-input">Add documents</label>
+      <br />
+      <input type="file"
+        onInput={e => setFiles([...e.currentTarget.files!])} multiple />
+      <br />
+      <button type="button" onClick={submitFiles} multiple>Submit</button>
     </div>
   )
 }

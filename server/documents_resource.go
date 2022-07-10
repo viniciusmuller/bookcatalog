@@ -63,14 +63,7 @@ func (rs DocumentsResource) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	err = rs.Importer.ImportFile(header.Filename, file)
-	if err != nil {
-		log.Println(err)
-		// writeStatus(w, http.StatusInternalServerError)
-		return
-	}
-
-	doc, err := rs.Repository.CreateDocument(header.Filename)
+	doc, err := rs.Importer.ImportFile(header.Filename, file)
 	if err != nil {
 		log.Println(err)
 		// writeStatus(w, http.StatusInternalServerError)

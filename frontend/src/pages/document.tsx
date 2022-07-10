@@ -31,16 +31,20 @@ export const DocumentPage = (props: any) => {
       {document ?
         <div style="display: flex">
           <img height={700} src={bookCatalogClient.getCoverUrl(document)} />
-          <div>
-            <h2>{document.name}</h2>
+          <div style="margin-left: 2rem">
+            <h2>Title: {document.title || "Unknown"}</h2>
+            <h3>Author: {document.author || "Unknown"}</h3>
+            <p>Pages: {document.pages || "Unknown"}</p>
             <a href={bookCatalogClient.getDocumentUrl(document)}>Read</a>
-            <button
-              type='button'
-              onClick={deleteDocument}
-            >
-              Remove book from catalog
-            </button>
-            <button type='button' onClick={() => history.go(-1)}>Go back</button>
+            <div>
+              <button
+                type='button'
+                onClick={deleteDocument}
+              >
+                Remove book from catalog
+              </button>
+              <button type='button' onClick={() => history.go(-1)}>Go back</button>
+            </div>
           </div>
         </div>
         : <p>Loading</p>}
